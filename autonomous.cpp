@@ -3,9 +3,9 @@
 #include "auton_functions.h"
 
 void blueleft(){
-base_PID(10, 30);
+base_PID(1,20);
 pros::delay(300);
-base_PID(0,0);
+
 //turn_PID(90);
 
 
@@ -36,13 +36,13 @@ intakeR.move_velocity(0);
 }
 
 void redright(){
-newturn_PID(90);
+turn_PID(90);
 
 pros::delay(10);
 }
 
 void autonomous() {
-intakeL.move_velocity(100);
+
 if(sideautonstate == 2 && colorautonstate ==2){
 	blueleft();
 }
@@ -58,12 +58,3 @@ if(sideautonstate == 1 && colorautonstate == 1){
 }
 
 }
-
-
-/**leftenc.reset();
-rightenc.reset();
-while(true){
-	printf("Left %f\n",(double)leftenc.get_value());
-	printf("Right %f\n",(double)rightenc.get_value());
-	pros::delay(5);
-}**/
