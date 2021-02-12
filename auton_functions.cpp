@@ -6,7 +6,7 @@ const double WHEEL_RADIUS = 1.625;
 const int DEFAULTSLEWRATEINCREMENT = 10;
 const float TICKS_PER_ROTATION =  360.0;
 const double CIRCUMFERENCE = 2*M_PI*WHEEL_RADIUS;
-
+const double DIAMETER = 3.25;
 // Increase/Decrease motor speed towards target speed by increments and move, if targetVelocity is 0 move at same speed
 void slewRateControl(pros::Motor *motor, int targetVelocity, int increment){
   int currentVelocity = motor->get_target_velocity();
@@ -27,72 +27,65 @@ void slewRateControl(pros::Motor *motor, int targetVelocity, int increment){
   motor->move_velocity(currentVelocity);
 }
 
-void base_PID(double targetdistance, int velocity){
-  leftenc.reset();
- rightenc.reset();
- const double degreeGoal = TICKS_PER_ROTATION*(targetdistance/(1.625*2*M_PI)); // Ticks of rotation needed
- bool goalmet = false;
- double goal = 0.0;
- double target = 0.0;
- double targetvelocity = 0;
- double currentPos = 0;
- int error = 0;
- double prevError = goal;
- double kP = 0.15;
- double kI = 0.0005;
- double kD = 0.005;
+void base_PID(double targetdistance, int velocity){//target distance in inches
+leftenc.reset();//reset encoder values
+rightenc.reset();
 
- int maxvelocity = velocity;
+double degreegoal = (targetdistance /(1.625*2*M_PI))*TICKS_PER_ROTATION;
+double target = 0.0;
+double goal = 0.0;
+bool goalMet = false;
+int targetVelocity = 0;
+double currentPos;
+double error;
+double integral = 0.0;
+double derivative = 0.0;
+double previouserror = goal;
+target = degreegoal;
+ double revolutions = 0;
+double kP = 0.27;
+double kI = 0;
+double kD = 0;
+  if(target < 0){
+  velocity *= -1;
+  }
 
- double integral = 0.0;
- double derivative = 0.0;
-// Rotation ticks away from goal
-
-
- target = degreeGoal;
-
- while(!goalmet){
- currentPos = ((tlw.get_position() + trw.get_position()) / 2);
- //currentPos = leftenc.get_value();
- //currentPos = targetdistance- ((leftenc.get_value() + rightenc.get_value()) /2);
- error = target - currentPos;
- if(std::abs(error) < 600){
-   integral = integral + error;
-}
-else{
-  integral = 0;
-}
- derivative = error - prevError;
- prevError = error;
-targetvelocity = kP*error + kI*integral  + kD*derivative ;
-
- if(std::abs(targetvelocity) > std::abs(maxvelocity)){
-   targetvelocity =  maxvelocity;
- }
-
- tlw.move_velocity(targetvelocity);
- trw.move_velocity(-targetvelocity);
- blw.move_velocity(targetvelocity);
- brw.move_velocity(targetvelocity);
-
- /**slewRateControl(&blw, targetvelocity,DEFAULTSLEWRATEINCREMENT);
- slewRateControl(&tlw, targetvelocity,DEFAULTSLEWRATEINCREMENT);
- slewRateControl(&brw, targetvelocity,DEFAULTSLEWRATEINCREMENT);
- slewRateControl(&trw, targetvelocity,DEFAULTSLEWRATEINCREMENT);**/
- if(std::abs(error) < 2){
-   goalmet = true;
- }
-
- pros::delay(10);
- }
-
- brakeMotor();
+    while(!goalMet){
+      revolutions = (leftenc.get_value() / 360);
+      currentPos = (revolutions /(1.625*2*M_PI))*360;
+      error = target - currentPos;
 
 
+      integral = integral + error;
+
+
+      if((error = 0) || (error > 600)){//lower error
+        integral = 0;
+      }
+
+      derivative = error - previouserror;
+      previouserror = error;
+
+      targetVelocity = kP * error + kI* integral + kD * derivative;
+      if(std::abs(targetVelocity) < std::abs(velocity)){
+        targetVelocity = velocity;
+      }
+      tlw.move_velocity(targetVelocity);
+      trw.move_velocity(-targetVelocity);
+      blw.move_velocity(targetVelocity);
+      brw.move_velocity(-targetVelocity);
+
+      if(std::abs(error) < 2){
+        goalMet = true;
+      }
+      pros::delay(10);
+    }
+    brakeMotor();
 
 }
 
-void move_straight_rel_test(double xCoord, int maxVel, int multi){
+
+/**void move_straight_rel_test(double xCoord, int maxVel, int multi){
   leftenc.reset();
   rightenc.reset();
 
@@ -151,12 +144,12 @@ void move_straight_rel_test(double xCoord, int maxVel, int multi){
    }
 
    pros::delay(10);
- }
-
+  }
+  }
  brakeMotor();
  intakeL.move_velocity(0);
  intakeR.move_velocity(0);
-}
+}**/
 void turn_PID(float targetdegree){
   leftenc.reset();
   rightenc.reset();
@@ -186,7 +179,7 @@ int righttarget = 0;
  if(targetdegree<0){maxVelocity *= -1;}
 
 while(!goalmet){
-  currentpos = leftenc.get_value();
+  currentpos = leftenc.get_value()*degreeGoal;
   error = degreeGoal - currentpos;
 
   if(std::abs(error) < 100){
