@@ -27,24 +27,7 @@
  * to keep execution time for this mode under a few seconds.
  */
 
- void color_limit_switch(){
-	 while(true){
-	if(colorlimit_switch.get_value()>0 && colorbutton_unpressed){
-		colorautonstate++;
-		if(colorautonstate ==5){
-			colorautonstate = 0;
-			colorbutton_unpressed = false;
-		}
-	}
-	if(colorlimit_switch.get_value()){
-		colorbutton_unpressed = true;
 
-
-	}
-	pros::delay(10);
-}
-
- }
  //void initialize() {
 
 
@@ -128,6 +111,7 @@ void competition_initialize() {
 
 
 
+
 void opcontrol() {
 
 
@@ -136,14 +120,15 @@ void opcontrol() {
 	trw.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 	brw.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 
-	while (true) {
-		//std::cout <<"Left:" << exampleFilter.filter(leftenc.get());
-		//std::cout <<"Right:" << exampleFilter.filter(rightenc.get());
 
+	while (true) {
+  	//std::cout <<"Left:" << leftenc.get_value();
+		//std::cout <<"Right" << rightenc.get_value();
 		double power = 220*master.get_analog(ANALOG_LEFT_Y)/127;
 		double turn = 140*master.get_analog(ANALOG_RIGHT_X)/127;
 		int l = (int)(pow(((power + turn)/200.0),2.0)*170.0);
 	  int r = (int) (pow(((power - turn)/200.0),2.0)*170.0);
+
 
 
 
@@ -208,15 +193,15 @@ int r = (int)(600/1+100(pow(2.71828182845904523536,(power-turn)));
 
 	}
 
-		if(master.get_digital(DIGITAL_L1)){
+	if(master.get_digital(DIGITAL_L1)){
 			intakeL.move_voltage(14000);
 			intakeR.move_voltage(14000);
 		}
-		else if(master.get_digital(DIGITAL_L2)){
+	else if(master.get_digital(DIGITAL_L2)){
 			intakeL.move_voltage(-12000);
 			intakeR.move_voltage(-12000);
 		}
-		else{
+	else{
 			intakeL.move_velocity(0);
 			intakeR.move_velocity(0);
 			intakeL.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
@@ -224,21 +209,22 @@ int r = (int)(600/1+100(pow(2.71828182845904523536,(power-turn)));
 
 		}
 
-		if(master.get_digital(DIGITAL_L1) && master.get_digital(DIGITAL_R2)){
+	if(master.get_digital(DIGITAL_L1) && master.get_digital(DIGITAL_R2)){
 			intakeL.move_voltage(12000);
 			intakeR.move_voltage(12000);
 			rollB.move_voltage(11000);
 		}
 
-		else if(master.get_digital(DIGITAL_R1)){
+
+	else if(master.get_digital(DIGITAL_R1)){
 			rollB.move_voltage(14000);
 			rollT.move_voltage(12000);
 		}
-		else if(master.get_digital(DIGITAL_R2)){
+	else if(master.get_digital(DIGITAL_R2)){
 			rollB.move_voltage(-10000);
 			rollT.move_voltage(-10000);
 		}
-		else{
+	else{
 			rollB.move_velocity(0);
 			rollT.move_velocity(0);
 			rollB.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
