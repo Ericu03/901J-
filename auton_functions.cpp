@@ -2,11 +2,11 @@
 #include "config.hpp"
 #include "auton_functions.h"
 
-const double WHEEL_RADIUS = 1.625;
+const double WHEEL_RADIUS = 1.375;
 const int DEFAULTSLEWRATEINCREMENT = 10;
 const float TICKS_PER_ROTATION =  360.0;
 const double CIRCUMFERENCE = 2*M_PI*WHEEL_RADIUS;
-const double DIAMETER = 3.25;
+const double DIAMETER = 2.75;
 // Increase/Decrease motor speed towards target speed by increments and move, if targetVelocity is 0 move at same speed
 void slewRateControl(pros::Motor *motor, int targetVelocity, int increment){
   int currentVelocity = motor->get_target_velocity();
@@ -32,7 +32,7 @@ void base_PID(double targetdistance, int velocity){//target distance in inches
 leftenc.reset();//reset encoder values
 rightenc.reset();
 
-double degreegoal = (targetdistance /(1.625*2*M_PI))*TICKS_PER_ROTATION;
+double degreegoal = (targetdistance /(1.375*2*M_PI))*TICKS_PER_ROTATION;
 double target = 0.0;
 int vel = velocity;
 double goal = 0.0;
@@ -45,35 +45,35 @@ double derivative = 0.0;
 double previouserror = 0.0;
 target = degreegoal;
  double revolutions = 0;
-double kP = 0.27;
-double kI = 0.0005;
-double kD = 0.005;
+double kP = 0.25;//0.1625
+double kI = 0.0004;//0.0005
+double kD = 0.005;//0.005
   if(target < 0){
   vel *= -1;
   }
 
     while(!goalMet){
-      revolutions = rightenc.get_value();
-      currentPos = revolutions;
+
+      currentPos = rightenc.get_value();
       error = degreegoal - currentPos;
 
-      if(std::abs(error)< 1500){
+      if(std::abs(error) < 600){
         integral = integral + error;
-      }
 
+      }
 
 
       derivative = error - previouserror;
       previouserror = error;
 
       targetVelocity = kP * error + kI* integral + kD * derivative;
-      if(std::abs(targetVelocity) < std::abs(vel)){
+      if(std::abs(targetVelocity) > std::abs(vel)){
         targetVelocity = vel;
       }
     slewRateControl(&tlw, targetVelocity, DEFAULTSLEWRATEINCREMENT);
     slewRateControl(&blw, targetVelocity, DEFAULTSLEWRATEINCREMENT);
-    slewRateControl(&trw, targetVelocity, DEFAULTSLEWRATEINCREMENT);
-    slewRateControl(&brw, targetVelocity, DEFAULTSLEWRATEINCREMENT);
+    slewRateControl(&trw, -targetVelocity, DEFAULTSLEWRATEINCREMENT);
+    slewRateControl(&brw, -targetVelocity, DEFAULTSLEWRATEINCREMENT);
 
       if(std::abs(error) < 2){
         goalMet = true;
@@ -90,8 +90,8 @@ void turn_PID(float targetdegree){
   rightenc.reset();
   leftenc.reset();
 
- float turn_constant_right = 1.5;//2.4
- float turn_constant_left = 1.52;//2.42
+ float turn_constant_right = 2.85;//2.4
+ float turn_constant_left = 2.32;//2.42
  int maxVelocity = 70;
  double degreeGoal;
  if (targetdegree > 0){
@@ -137,7 +137,8 @@ void turn_PID(float targetdegree){
 
 
      leftTarget = targetVelocity;
-     rightTarget = -1*targetVelocity;
+     rightTarget = targetVelocity;
+
      slewRateControl(&tlw, leftTarget, DEFAULTSLEWRATEINCREMENT);
      slewRateControl(&blw, leftTarget, DEFAULTSLEWRATEINCREMENT);
      slewRateControl(&trw, rightTarget, DEFAULTSLEWRATEINCREMENT);
