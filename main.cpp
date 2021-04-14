@@ -112,7 +112,11 @@ void competition_initialize() {
 
 
 
+
+
+
 void opcontrol() {
+
 
 
 	tlw.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
@@ -208,12 +212,31 @@ int r = (int)(600/1+100(pow(2.71828182845904523536,(power-turn)));
 			intakeR.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
 		}
+		if(master.get_digital(DIGITAL_L1) && master.get_digital(DIGITAL_R2)){
+					intakeL.move_voltage(12000);
+					intakeR.move_voltage(12000);
+					rollB.move_voltage(11000);
+					pros::delay(8);
+					if(!(master.get_digital(DIGITAL_L1)&&master.get_digital(DIGITAL_R2))){
+						pros::delay(75);
+						rollB.move_voltage(-10000);
+						rollT.move_voltage(-10000);
+						pros::delay(200);
+						rollB.move_voltage(0);
+						rollT.move_voltage(0);
+					}
+				}
 
-	if(master.get_digital(DIGITAL_L1) && master.get_digital(DIGITAL_R2)){
-			intakeL.move_voltage(12000);
-			intakeR.move_voltage(12000);
-			rollB.move_voltage(11000);
-		}
+
+
+
+/**if((master.get_digital(DIGITAL_L1) && master.get_digital(DIGITAL_R2)) != true){
+	rollB.move_voltage(-10000);
+	rollT.move_voltage(-10000);
+	pros::delay(100);
+	rollB.move_voltage(0);
+	rollT.move_voltage(0);
+}**/
 
 
 	else if(master.get_digital(DIGITAL_R1)){
